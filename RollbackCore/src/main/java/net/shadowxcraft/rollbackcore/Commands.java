@@ -57,7 +57,7 @@ public class Commands implements CommandExecutor {
 	@Override
 	public final boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		// Checks to see if the player has permission to use the commands.
-		if (sender.hasPermission("Rollback.admin")) {
+		if (sender.hasPermission("rollback.admin")) {
 			// Checks if they issued the rollback command.
 			if (cmd.getName().equalsIgnoreCase("rollback")) {
 				if (args.length < 1) {
@@ -199,7 +199,11 @@ public class Commands implements CommandExecutor {
 		if (args.length == 2 && args[1].equalsIgnoreCase("rollback")) {
 			WatchDogRegion.playerRollback(sender);
 		} else if (args.length == 2 && args[1].equalsIgnoreCase("create")) {
-			WatchDogRegion.playerCreateWatchDog((Player) sender);
+			if (sender instanceof Player) {
+				WatchDogRegion.playerCreateWatchDog((Player) sender);
+			} else {
+				sender.sendMessage(prefix + "Only players can create watchdog regions.");
+			}
 		} else if (args.length == 2 && args[1].equalsIgnoreCase("remove")) {
 			WatchDogRegion.playerRemove(sender);
 		} else if (args.length == 3 && args[1].equalsIgnoreCase("export")) {
@@ -323,7 +327,7 @@ public class Commands implements CommandExecutor {
 		if (args.length >= 2) {
 
 			Location temp = Config.getRegionMinLocation(args[1]);
-			if (temp.getWorld() != null) {
+			if (temp != null && temp.getWorld() != null) {
 				String name = Paths.get(Main.regionsPath.toString(), args[1]).toString();
 
 				Set<String> otherArgs = new HashSet<String>();

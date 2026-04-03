@@ -5,15 +5,16 @@
 	<groupId>net.shadowxcraft</groupId>
 	<artifactId>RollbackCore</artifactId>
 	<name>RollbackCore</name>
-	<description>Rollbacks arenas.</description>
+	<description>Modern region and world rollback tooling for Paper servers.</description>
 	<properties>
-		<maven.compiler.source>17</maven.compiler.source>
-		<maven.compiler.target>17</maven.compiler.target>
+		<java.version>21</java.version>
+		<maven.compiler.release>${java.version}</maven.compiler.release>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<repositories>
 		<repository>
-			<id>spigot-repo</id>
-			<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+			<id>papermc-repo</id>
+			<url>https://repo.papermc.io/repository/maven-public/</url>
 		</repository>
 		<repository>
 			<id>central</id>
@@ -36,11 +37,11 @@
 		</repository>
 	</repositories>
 	<dependencies>
-		<!--Spigot API -->
+		<!-- Paper API -->
 		<dependency>
-			<groupId>org.spigotmc</groupId>
-			<artifactId>spigot-api</artifactId>
-			<version>1.20.3-R0.1-SNAPSHOT</version>
+			<groupId>io.papermc.paper</groupId>
+			<artifactId>paper-api</artifactId>
+			<version>1.21.11-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<!-- Worldedit -->
@@ -86,8 +87,16 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.13.0</version>
+				<configuration>
+					<release>${java.version}</release>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.22.2</version>
+				<version>3.2.5</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

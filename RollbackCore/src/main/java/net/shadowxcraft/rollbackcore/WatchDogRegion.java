@@ -26,6 +26,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -131,15 +133,18 @@ public class WatchDogRegion {
 	 * @return the number of canceled tasks.
 	 */
 	public static final int cancelAll() {
-		int numberOfTasks = activeWatchDogs.size();
-		for (WatchDogRegion wd : activeWatchDogs)
+		List<WatchDogRegion> watchDogs = new ArrayList<WatchDogRegion>(activeWatchDogs);
+		for (WatchDogRegion wd : watchDogs) {
 			if (wd.rollbackTask != -1) {
 				Bukkit.getScheduler().cancelTask(wd.rollbackTask);
 				new WDRollbackEndEvent(wd, 0, 0, EndStatus.FAIL_EXERNAL_TERMINATION);
 				wd.min.getWorld().setAutoSave(wd.originalWorldSaveSetting);
+				rollbackingWatchDogs.remove(wd);
+				wd.rollbackTask = -1;
 			}
+		}
 		activeWatchDogs.clear();
-		return numberOfTasks;
+		return watchDogs.size();
 	}
 
 	/**
@@ -207,7 +212,7 @@ public class WatchDogRegion {
 			int count = 0;
 
 			// Checks every watchdog region to see if the player is in it.
-			for (WatchDogRegion watchDog : activeWatchDogs) {
+			for (WatchDogRegion watchDog : new ArrayList<WatchDogRegion>(activeWatchDogs)) {
 				if (watchDog.isInRegion(player.getLocation())) {
 					count++;
 					sender.sendMessage(Main.prefix + "Detected you are in a region! Rolling back all "
@@ -236,7 +241,7 @@ public class WatchDogRegion {
 			int count = 0;
 
 			// Checks every watchdog region to see if the player is in it.
-			for (WatchDogRegion watchDog : activeWatchDogs) {
+			for (WatchDogRegion watchDog : new ArrayList<WatchDogRegion>(activeWatchDogs)) {
 				if (watchDog.isInRegion(player.getLocation())) {
 					count++;
 					sender.sendMessage(watchDog.prefix + "Detected you are in a region! Exporting all "
@@ -273,7 +278,7 @@ public class WatchDogRegion {
 			Player player = (Player) sender;
 
 			// Checks every watchdog region to see if the player is in it.
-			for (WatchDogRegion watchDog : activeWatchDogs) {
+			for (WatchDogRegion watchDog : new ArrayList<WatchDogRegion>(activeWatchDogs)) {
 				if (watchDog.isInRegion(player.getLocation())) {
 					watchDog.remove();
 					sender.sendMessage(watchDog.prefix + "Removed region from " + watchDog.min + " to " + watchDog.max);
@@ -409,6 +414,11 @@ public class WatchDogRegion {
 							}
 						}
 					}, 1, 1);
+		} else {
+			min.getWorld().setAutoSave(originalWorldSaveSetting);
+			if (sender != null) {
+				sender.sendMessage(prefix + "Nothing to roll back.");
+			}
 		}
 	}
 
@@ -425,16 +435,20 @@ public class WatchDogRegion {
 		// process file name
 		if (!fileName.contains(".")) {
 			fileName += ".wdbackup";
-			if (!fileName.contains("/") && !fileName.contains("\\")) {
-				fileName = Main.watchDogRegionsPath.toString() + "/" + fileName;
+			Path requestedPath = Paths.get(fileName);
+			if (requestedPath.getParent() == null) {
+				fileName = Main.watchDogRegionsPath.resolve(fileName).toString();
 			}
 		}
 
 		LRUCache<BlockData> cache = new LRUCache<BlockData>(1, 255);
 		BufferedOutputStream out;
 		File file = new File(fileName);
+		File parent = file.getParentFile();
+		if (parent != null) {
+			parent.mkdirs();
+		}
 		file.createNewFile();
-		file.mkdirs();
 		out = new BufferedOutputStream(new FileOutputStream(file));
 
 		// Writes everything about the region.
@@ -505,8 +519,9 @@ public class WatchDogRegion {
 		// Process file name
 		if (!fileName.contains(".")) {
 			fileName += ".wdbackup";
-			if (!fileName.contains("/") && !fileName.contains("\\")) {
-				fileName = Main.watchDogRegionsPath.toString() + "/" + fileName;
+			Path requestedPath = Paths.get(fileName);
+			if (requestedPath.getParent() == null) {
+				fileName = Main.watchDogRegionsPath.resolve(fileName).toString();
 			}
 		}
 		File file = new File(fileName);
@@ -590,7 +605,8 @@ public class WatchDogRegion {
 	 * it from the list that it keeps up to date.
 	 */
 	public final void remove() {
-		originalStates = null;
+		originalStates.clear();
+		rollbackingWatchDogs.remove(this);
 		activeWatchDogs.remove(this);
 	}
 
@@ -627,6 +643,14 @@ class ImportOperation extends BukkitRunnable {
 		this.runTaskTimer(Main.plugin, 1, 1);
 		ImportOperation.runningImports.add(this);
 		this.sender = sender;
+	}
+
+	static int cancelAll() {
+		List<ImportOperation> imports = new ArrayList<ImportOperation>(runningImports);
+		for (ImportOperation operation : imports) {
+			operation.end(EndStatus.FAIL_EXERNAL_TERMINATION);
+		}
+		return imports.size();
 	}
 
 	@Override
@@ -681,7 +705,7 @@ class ImportOperation extends BukkitRunnable {
 				}
 
 				// Adds it to the watchdog region.
-				exportedTo.addState(state, blockLocation);
+				exportedTo.addState(state, blockLocation.clone());
 				blocksImported++;
 			}
 			if (in.available() < 8) {

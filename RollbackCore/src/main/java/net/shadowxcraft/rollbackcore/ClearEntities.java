@@ -93,9 +93,9 @@ public class ClearEntities {
 			this.allowedEntities = new ArrayList<EntityType>(5);
 			try {
 				this.allowedEntities.add(EntityType.PLAYER);
-				this.allowedEntities.add(EntityType.ENDER_CRYSTAL);
+				this.allowedEntities.add(EntityType.END_CRYSTAL);
 				this.allowedEntities.add(EntityType.PAINTING);
-				this.allowedEntities.add(EntityType.LEASH_HITCH);
+				this.allowedEntities.add(EntityType.LEASH_KNOT);
 				this.allowedEntities.add(EntityType.ARMOR_STAND);
 			} catch (NoSuchFieldError e) {
 				Main.plugin.getLogger().warning("Incompatible entity type: " + e.getLocalizedMessage());

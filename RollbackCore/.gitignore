@@ -5,3 +5,4 @@ target/
 **/nppBackup
 dependency-reduced-pom.xml
 /org.eclipse.jdt.annotation_2.2.100.v20180905-0314.jar
+*.iml

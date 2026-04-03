@@ -48,10 +48,10 @@ public class Main extends JavaPlugin {
 		getServer().getPluginManager().registerEvents(new BukkitListener(), plugin);
 		
 		try {
-			savesPath = Paths.get(getDataFolder().getAbsolutePath(), "/saves/");
-			regionsPath = Paths.get(savesPath.toString(), "/regions/");
-			watchDogRegionsPath = Paths.get(savesPath.toString(), "/watchdog_backups/");
-			worldsPath = Paths.get(savesPath.toString(), "/worlds/");
+			savesPath = Paths.get(getDataFolder().getAbsolutePath(), "saves");
+			regionsPath = savesPath.resolve("regions");
+			watchDogRegionsPath = savesPath.resolve("watchdog_backups");
+			worldsPath = savesPath.resolve("worlds");
 			Files.createDirectories(savesPath);
 			Files.createDirectories(regionsPath);
 			Files.createDirectories(watchDogRegionsPath);
@@ -96,6 +96,8 @@ public class Main extends JavaPlugin {
 	// Fired when plugin is disabled
 	@Override
 	public void onDisable() {
+		TaskManager.cancelAllTasks();
+		WatchDogRegion.cancelAll();
 		plugin = null;
 	}
 

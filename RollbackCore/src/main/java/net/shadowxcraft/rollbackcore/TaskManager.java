@@ -50,6 +50,7 @@ public class TaskManager {
 		totalCanceledTasks += WatchDogRegion.cancelAll();
 		totalCanceledTasks += Copy.cancelAll();
 		totalCanceledTasks += Paste.cancelAll();
+		totalCanceledTasks += ImportOperation.cancelAll();
 		return totalCanceledTasks;
 	}
 }

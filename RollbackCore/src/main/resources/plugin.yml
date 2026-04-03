@@ -1,15 +1,16 @@
 name: RollbackCore
 main: net.shadowxcraft.rollbackcore.Main
 version: 3.6.2
-api-version: 1.13
+api-version: '1.21'
+description: Fast region snapshots, rollbacks, watchdog recovery, and whole-world backups for modern Paper servers.
 softdepend: [WorldEdit, Skript]
 commands:
   rollback:
-    usage: /rollback <paste/copy/reload>
-    description: Copies/Saves a region.
+    usage: /rollback <help|copy|paste|addregion|rollbackregion|watchdog|worldbackup|worldrollback|reload>
+    description: Modern rollback and backup toolkit for arenas and worlds.
     permission: rollback.admin
-    aliases: [rb, /rollback]
+    aliases: [rb]
 permissions:
-    rollback.admin:
-        description: Used to save and load arenas.
-        default: op
+  rollback.admin:
+    description: Used to save, paste, back up, and roll back regions and worlds.
+    default: op

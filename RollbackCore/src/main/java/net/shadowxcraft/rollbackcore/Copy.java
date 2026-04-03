@@ -25,6 +25,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -113,8 +115,9 @@ public class Copy extends RollbackOperation {
 
 		if (!fileName.contains(".")) {
 			fileName += ".dat";
-			if (!fileName.contains("/") || !fileName.contains("\\")) {
-				fileName = Main.savesPath.toString() + "/" +fileName;
+			Path requestedPath = Paths.get(fileName);
+			if (requestedPath.getParent() == null) {
+				fileName = Main.savesPath.resolve(fileName).toString();
 			}
 		}
 		this.fileName = fileName;
@@ -158,11 +161,11 @@ public class Copy extends RollbackOperation {
 	 * @return The number of operations cancelled.
 	 */
 	public static int cancelAll() {
-		int numberOfTasks = runningCopies.size();
-		for (int i = 0; i < numberOfTasks; i++) {
-			runningCopies.get(i).end(EndStatus.FAIL_EXERNAL_TERMINATION);
+		List<Copy> copies = new ArrayList<Copy>(runningCopies);
+		for (Copy copy : copies) {
+			copy.end(EndStatus.FAIL_EXERNAL_TERMINATION);
 		}
-		return numberOfTasks;
+		return copies.size();
 	}
 
 	/**

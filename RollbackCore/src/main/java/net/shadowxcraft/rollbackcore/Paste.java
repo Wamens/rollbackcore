@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -124,8 +126,9 @@ public class Paste extends RollbackOperation {
 		min.getWorld().setAutoSave(false);
 		if (!fileName.contains(".")) {
 			fileName += ".dat";
-			if (!fileName.contains("/") || !fileName.contains("\\")) {
-				fileName = Main.savesPath.toString() + "/" + fileName;
+			Path requestedPath = Paths.get(fileName);
+			if (requestedPath.getParent() == null) {
+				fileName = Main.savesPath.resolve(fileName).toString();
 			}
 		}
 		this.fileName = fileName;
@@ -136,10 +139,11 @@ public class Paste extends RollbackOperation {
 	}
 
 	public static int cancelAll() {
-		int numberOfTasks = runningPastes.size();
-		for (int i = 0; i < numberOfTasks; i++)
-			runningPastes.get(i).end(EndStatus.FAIL_EXERNAL_TERMINATION);
-		return numberOfTasks;
+		List<Paste> pastes = new ArrayList<Paste>(runningPastes);
+		for (Paste paste : pastes) {
+			paste.end(EndStatus.FAIL_EXERNAL_TERMINATION);
+		}
+		return pastes.size();
 	}
 
 	/**
@@ -270,19 +274,23 @@ public class Paste extends RollbackOperation {
 						// Check to see if an update is even needed.
 						boolean needsUpdate = LegacyUpdater.needsUpdate(version);
 						if (needsUpdate) {
-							this.sender.sendMessage("File was written in MC version " + version
-								+ ", but you are running " + CURRENT_MC_VERSION + ". Updates are required."
-								+ " Attempting an update."
-							);
+							if (this.sender != null) {
+								this.sender.sendMessage("File was written in MC version " + version
+									+ ", but you are running " + CURRENT_MC_VERSION + ". Updates are required."
+									+ " Attempting an update."
+								);
+							}
 							if (!updateFailed) {
 								in.close();
 								LegacyUpdater.updateModernBlockData(fileName, this);
 								return false;
 							}
 						} else {
-							this.sender.sendMessage("File was written in MC version " + version
-									+ ", but you are running " + CURRENT_MC_VERSION + ". No updates are required yet."
-							);
+							if (this.sender != null) {
+								this.sender.sendMessage("File was written in MC version " + version
+										+ ", but you are running " + CURRENT_MC_VERSION + ". No updates are required yet."
+								);
+							}
 						}
 					}
 					break;
